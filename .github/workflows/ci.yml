@@ -13,52 +13,52 @@ on:
 
 jobs:
   test:
-    test:
-  name: Automated Tests (Unit / Integration / Functional)
-  runs-on: ubuntu-latest
+    name: Automated Tests (Unit / Integration / Functional)
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-    - name: Debug repository structure
-      run: |
-        pwd
-        ls -la
-        find . -type f | sort
+      - name: Debug repository structure
+        run: |
+          pwd
+          ls -la
+          find . -type f | sort
 
-    - name: Debug Python imports
-      run: |
-        python -c "import sys; print(sys.path)"
-        python -c "import todo_project; print(todo_project.__file__)"
+      - name: Debug Python imports
+        run: |
+          python -c "import sys; print(sys.path)"
+          python -c "import todo_project; print(todo_project.__file__)"
 
-    - name: Run tests with coverage
-      working-directory: todo_project
-      env:
-        SECRET_KEY: test-secret-key
-        SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
-      run: |
-        pytest tests -v \
-          --cov=. \
-          --cov-report=term-missing \
-          --cov-report=xml:coverage.xml
+      - name: Run tests with coverage
+        working-directory: todo_project
+        env:
+          SECRET_KEY: test-secret-key
+          SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
+        run: |
+          pytest tests -v \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
 
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: todo_project/coverage.xml
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: todo_project/coverage.xml
+
 
   build:
     name: Build and Validate Docker Image
@@ -90,6 +90,7 @@ jobs:
         if: always()
         run: docker logs task-manager-test || true
 
+
   sast:
     name: Static Security Analysis with Bandit
     runs-on: ubuntu-latest
@@ -120,6 +121,7 @@ jobs:
           name: bandit-report
           path: bandit-report.txt
 
+
   dependency_audit:
     name: Dependency Vulnerability Analysis with pip-audit
     runs-on: ubuntu-latest
@@ -147,6 +149,7 @@ jobs:
         with:
           name: pip-audit-report
           path: pip-audit-report.json
+
 
   dast:
     name: Dynamic Security Analysis (OWASP ZAP)
@@ -186,6 +189,7 @@ jobs:
         if: always()
         run: docker stop task-manager-dast || true
 
+
   stage_deploy:
     name: Continuous Delivery - Stage Environment
     runs-on: ubuntu-latest
@@ -195,8 +199,6 @@ jobs:
       - dependency_audit
       - dast
     if: github.ref == 'refs/heads/stage' || github.event_name == 'pull_request'
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout repository
@@ -234,6 +236,7 @@ jobs:
       - name: Stop stage environment
         if: always()
         run: docker rm -f task-manager-stage || true
+
 
   monitoring:
     name: Post-Deploy Monitoring Stack Validation
