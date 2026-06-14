@@ -11,6 +11,7 @@ on:
       - main
       - stage
 
+
 jobs:
   test:
     name: Automated Tests (Unit / Integration / Functional)
@@ -39,11 +40,12 @@ jobs:
 
       - name: Run tests with coverage
         env:
+          PYTHONPATH: ${{ github.workspace }}
           SECRET_KEY: test-secret-key
-          SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
+          SQLALCHEMY_DATABASE_URI: sqlite:///:memory:
         run: |
-          pytest -v \
-            --cov=. \
+          pytest todo_project/tests -v \
+            --cov=todo_project \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml
 
@@ -52,6 +54,7 @@ jobs:
         with:
           name: coverage-report
           path: coverage.xml
+
 
   build:
     name: Build and Validate Docker Image
@@ -80,6 +83,7 @@ jobs:
         if: always()
         run: docker logs task-manager-test || true
 
+
   sast:
     name: Static Security Analysis with Bandit
     runs-on: ubuntu-latest
@@ -87,6 +91,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -103,6 +108,7 @@ jobs:
           name: bandit-report
           path: bandit-report.txt
 
+
   dependency_audit:
     name: Dependency Vulnerability Analysis with pip-audit
     runs-on: ubuntu-latest
@@ -110,6 +116,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -125,6 +132,7 @@ jobs:
           name: pip-audit-report
           path: pip-audit-report.json
 
+
   dast:
     name: Dynamic Security Analysis (OWASP ZAP)
     runs-on: ubuntu-latest
@@ -133,18 +141,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: |
+      - name: Build and run app
+        run: |
           docker build -t task-manager-flask:ci .
           docker run -d --name task-manager-dast \
             -e SECRET_KEY=ci-secret-key \
             -p 5000:5000 task-manager-flask:ci
 
-      - run: |
+      - name: Wait for app
+        run: |
           for i in $(seq 1 15); do
             curl -sf http://localhost:5000 && break || sleep 3
           done
 
-      - uses: zaproxy/action-baseline@v0.14.0
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'http://localhost:5000'
           fail_action: false
@@ -152,8 +163,10 @@ jobs:
           artifact_name: zap-report
           cmd_options: '-I'
 
-      - if: always()
+      - name: Stop container
+        if: always()
         run: docker stop task-manager-dast || true
+
 
   stage_deploy:
     name: Continuous Delivery - Stage Environment
@@ -179,6 +192,7 @@ jobs:
       - run: curl -I http://localhost:8080
 
       - run: docker rm -f task-manager-stage || true
+
 
   monitoring:
     name: Post-Deploy Monitoring Stack Validation
