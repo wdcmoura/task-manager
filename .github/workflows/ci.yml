@@ -44,7 +44,7 @@ jobs:
           SECRET_KEY: test-secret-key
           SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
         run: |
-          pytest todo_project/tests -v \
+          pytest todo_project -v \
             --cov=todo_project \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml
