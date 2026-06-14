@@ -74,11 +74,11 @@ jobs:
           docker run -d --name task-manager-test \
             -e SECRET_KEY=ci-secret-key \
             -e "SQLALCHEMY_DATABASE_URI=sqlite:///site.db" \
-            -p 8080:5000 task-manager-flask:ci
+            -p 5000:5000 task-manager-flask:ci
           sleep 5
 
       - name: Validate application response
-        run: curl -I http://localhost:8080 || exit 1
+        run: curl -I http://localhost:5000 || exit 1
 
       - name: Show container logs
         if: always()
