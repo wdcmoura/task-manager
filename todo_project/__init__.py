@@ -22,4 +22,6 @@ login_manager.init_app(app)
 
 login_manager.login_view = 'login'
 
-from . import routes
+# IMPORTAÇÃO OPCIONAL, MAS SEGURA
+with app.app_context():
+    import todo_project.routes
