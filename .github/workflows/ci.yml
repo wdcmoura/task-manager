@@ -47,7 +47,7 @@ jobs:
       working-directory: todo_project
       env:
         SECRET_KEY: test-secret-key
-        SQLALCHEMY_DATABASE_URI: sqlite:///:memory:
+        SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
       run: |
         pytest tests -v \
           --cov=. \
