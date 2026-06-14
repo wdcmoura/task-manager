@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - staging
+      - production
+
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Instalar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Instalar dependências
+      run: |
+        pip install -r requirements.txt
+        pip install pytest bandit
+
+    - name: Executar testes
+      run: |
+        pytest
+
+    - name: SAST - Bandit
+      run: |
+        bandit -r . -x ./venv || true
+
+  deploy-stage:
+    name: Deploy Stage
+    runs-on: ubuntu-latest
+    needs: test
+
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+    - name: Simular Deploy em Stage
+      run: |
+        echo "Aplicação implantada no ambiente de Stage"
+
+  dast:
+    name: DAST - OWASP ZAP
+    runs-on: ubuntu-latest
+    needs: deploy-stage
+
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+    - name: Simular execução do OWASP ZAP
+      run: |
+        echo "Executando análise DAST com OWASP ZAP"
