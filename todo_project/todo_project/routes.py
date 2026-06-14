@@ -1,6 +1,9 @@
 from flask import render_template, url_for, flash, redirect, request
 
-from flask import current_app as app
+#from flask import current_app as app
+from . import app
+
+
 from . import db, bcrypt
 
 # Import the forms
