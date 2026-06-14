@@ -42,7 +42,7 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
           SECRET_KEY: test-secret-key
-          SQLALCHEMY_DATABASE_URI: sqlite:///:memory:
+          SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
         run: |
           pytest todo_project/tests -v \
             --cov=todo_project \
